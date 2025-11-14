@@ -1,0 +1,10 @@
+config/*
+.idea
+*.pyc
+*.env
+__pycache__
+.pytest_cache
+.venv
+tests
+logs
+test.py
