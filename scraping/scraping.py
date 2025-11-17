@@ -79,7 +79,7 @@ def get_champions_list_by_position(position, tier, region):
 def get_matchup_list(chmp_json, visited, chmp, position, tier, region):
   try:
     visited[chmp] = True
-    print(chmp)
+    # print(chmp)
     url = f'https://op.gg/ko/lol/champions/{chmp_json[chmp]['eng']}/counters/{position}?tier={tier}&region={region}'
     html = get_html(url)
     soup_list = BeautifulSoup(html, 'html.parser').select('aside > div > div:nth-of-type(2) > ul > li')
@@ -92,7 +92,7 @@ def get_matchup_list(chmp_json, visited, chmp, position, tier, region):
       count = re.sub(r'\D', '', tempC.span.get_text(strip=True))
       if visited[name]:
         continue
-      print(f'\tvs {name}({chmp_json[name]['eng']} {chmp_json[name]['key']}) ')
+      # print(f'\tvs {name}({chmp_json[name]['eng']} {chmp_json[name]['key']}) ')
       temp_keys, temp_values = make_keys_and_values(chmp_json, position, chmp, name, winRate, count)
       keys.append(temp_keys)
       values.append(temp_values)
