@@ -1,0 +1,6 @@
+FROM python:3.12-slim
+WORKDIR /app
+COPY scraper_requirements.txt .
+RUN pip install --no-cache-dir -r scraper_requirements.txt
+COPY . .
+CMD ["python", "app_scraper.py"]
