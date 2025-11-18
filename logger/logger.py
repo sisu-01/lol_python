@@ -3,12 +3,12 @@ import sys
 import os
 from logging.handlers import RotatingFileHandler
 
-def init_logger():
+def init_logger(prefix):
   log_dir = "logs"
   if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-  log_file = os.path.join(log_dir, "app.log")
+  log_file = os.path.join(log_dir, f"{prefix}_app.log")
 
   logger = logging.getLogger()
   logger.setLevel(logging.INFO)
