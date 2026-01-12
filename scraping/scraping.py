@@ -34,6 +34,9 @@ def get_json(url):
   return {}
 
 def get_matchCount_and_check_opgg_update_time():
+  """
+    OP.GG의 최근 업데이트와 총 표본 수를 return 한다.
+  """
   html =  get_html(f'https://op.gg/ko/lol/champions?region={OPGG_REGION}&tier={OPGG_TIER}')
   pattern = r'\{\\"analyzedAt\\"\s*:\s*\\"([^"]+)\\",\s*\\"matchCount\\"\s*:\s*(\d+)\}'
   match = re.search(pattern, html)
@@ -61,6 +64,9 @@ def get_dataDragon_chmpJson_and_visited():
     return {}, {}
   
 def get_champions_list_by_position(position, tier, region):
+  """
+  position 별 챔피언 목록 return.
+  """
   try:
     url = f'https://op.gg/ko/lol/champions?position={position}&tier={tier}&region={region}'
     html = get_html(url)
@@ -76,11 +82,18 @@ def get_champions_list_by_position(position, tier, region):
     logger.critical(f"scraping.py get_champions_list_by_position error: {e}", exc_info=True)
     return None
 
-def get_matchup_list(chmp_json, visited, chmp, position, tier, region):
+def get_matchup_list(dataDragon_chmp_json, visited, chmp, position, tier, region):
+  """
+  특정 챔피언의 카운터 목록 key value 반환
+
+  Return:
+    keys: {position:A_id:B_id}
+    values: {A_win:B_win:count}
+  """
   try:
     visited[chmp] = True
     # print(chmp)
-    url = f'https://op.gg/ko/lol/champions/{chmp_json[chmp]['eng']}/counters/{position}?tier={tier}&region={region}'
+    url = f'https://op.gg/ko/lol/champions/{dataDragon_chmp_json[chmp]['eng']}/counters/{position}?tier={tier}&region={region}'
     html = get_html(url)
     soup_list = BeautifulSoup(html, 'html.parser').select('aside > div > div:nth-of-type(2) > ul > li')
     keys = list()
@@ -92,8 +105,8 @@ def get_matchup_list(chmp_json, visited, chmp, position, tier, region):
       count = re.sub(r'\D', '', tempC.span.get_text(strip=True))
       if visited[name]:
         continue
-      # print(f'\tvs {name}({chmp_json[name]['eng']} {chmp_json[name]['key']}) ')
-      temp_keys, temp_values = make_keys_and_values(chmp_json, position, chmp, name, winRate, count)
+      # print(f'\tvs {name}({dataDragon_chmp_json[name]['eng']} {dataDragon_chmp_json[name]['key']}) ')
+      temp_keys, temp_values = make_keys_and_values(dataDragon_chmp_json, position, chmp, name, winRate, count)
       keys.append(temp_keys)
       values.append(temp_values)
     return keys, values
@@ -123,19 +136,18 @@ def make_keys_and_values(chmp_json, position, chmpA, chmpB, AwinRate, count):
     logger.critical(f"scraping.py make_keys_and_values error: {e}", exc_info=True)
     return None, None
 
-def run(chmp_json, initVisited):
+def run(dataDragon_chmp_json, initVisited):
   try:
     logger.info(f"scraping.py scrap start")
     key_sets = dict()
-    # keys = list()
     matchups = list()
     for position in OPGG_POSITIONS:
       key_sets[position] = list()
       chmp_list = get_champions_list_by_position(position, OPGG_TIER, OPGG_REGION)
       visited = initVisited.copy()
       for chmp in chmp_list:
-        temp_keys, values = get_matchup_list(chmp_json, visited, chmp, position, OPGG_TIER, OPGG_REGION)
-        key_sets[position].extend(temp_keys)
+        keys, values = get_matchup_list(dataDragon_chmp_json, visited, chmp, position, OPGG_TIER, OPGG_REGION)
+        key_sets[position].extend(keys)
         matchups.extend(values)
     redis_client = RedisClient()
     redis_client.setKeyAndValue(key_sets, matchups)
@@ -144,7 +156,7 @@ def run(chmp_json, initVisited):
     logger.critical(f"scraping.py run error: {e}", exc_info=True)
 
 def main():
-  chmp_json , initVisited = get_dataDragon_chmpJson_and_visited()
+  dataDragon_chmp_json , initVisited = get_dataDragon_chmpJson_and_visited()
   last_update_time = ''
   while True:
     update_time, matchCount = get_matchCount_and_check_opgg_update_time()
@@ -155,7 +167,7 @@ def main():
     if last_update_time != update_time:
       logger.info(f'{last_update_time} != {update_time}다르다 간다.')
       last_update_time = update_time
-      run(chmp_json, initVisited)
+      run(dataDragon_chmp_json, initVisited)
     else:
       logger.info(f'에잉 똑같네..')
     time.sleep(600)

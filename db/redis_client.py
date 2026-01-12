@@ -23,8 +23,12 @@ class RedisClient():
       pipe = self.r.pipeline()
       for position in OPGG_POSITIONS:
         pipe.sadd(position, *keys[position])
+        # *: unpacking, 리스트를 각 요소로 개별 인자 전달.
+        # sadd: SADD key member sets에 하는거임 
       all_keys = chain.from_iterable(keys[pos] for pos in OPGG_POSITIONS)
+      # keys = {"top": ["k1", "k2"],"jungle": ["k3"]} -> ["k1", "k2", "k3"]
       pipe.mset(dict(zip(all_keys, values)))
+      # zip으로 key value 1:1 묶은 뒤 dict로 변환
       pipe.execute()
     except Exception as e:
       logger.critical(f"redis.py setKeyAndValue error: {e}", exc_info=True)
