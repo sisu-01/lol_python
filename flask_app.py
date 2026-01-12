@@ -1,4 +1,4 @@
-# app_flask.py
+# flask_app.py
 import os
 from api.api import create_app
 from logger.logger import init_logger
@@ -6,7 +6,7 @@ from flask import got_request_exception
 from flask_cors import CORS
 from config import CORS_ORIGINS
 
-logger = init_logger()
+logger = init_logger('flask')
 app = create_app()
 
 CORS(app, origins=CORS_ORIGINS)

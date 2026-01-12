@@ -1,9 +1,9 @@
-# app_scraper.py
+# scraper_app.py
 import time
 from logger.logger import init_logger
 from scraping.scraping import main as run_scraping
 
-logger = init_logger()
+logger = init_logger('scraper')
 
 def start_scraping():
   while True:
