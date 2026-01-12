@@ -151,6 +151,7 @@ def run(dataDragon_chmp_json, initVisited):
         matchups.extend(values)
     redis_client = RedisClient()
     redis_client.setKeyAndValue(key_sets, matchups)
+    redis_client.setUpdateTime()
     logger.info(f"scraping.py scrap complete, matchups len: {len(matchups)}")
   except Exception as e:
     logger.critical(f"scraping.py run error: {e}", exc_info=True)

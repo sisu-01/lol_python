@@ -1,4 +1,5 @@
 # db/redis_client.py
+import time
 import logging
 import redis
 from itertools import chain
@@ -71,4 +72,18 @@ class RedisClient():
       return self.r.mget(keys)
     except Exception as e:
       logger.critical(f"redis.py getKeyValue error: {e}", exc_info=True)
+      return None
+
+  def setUpdateTime(self):
+    try:
+      self.r.set("last_update_time", int(time.time()))
+    except Exception as e:
+      logger.critical(f"redis.py setUpdateTime error: {e}", exc_info=True)
+
+  def getUpdateTime(self):
+    try:
+      value = self.r.get("last_update_time")
+      return int(value) if value is not None else None
+    except Exception as e:
+      logger.critical(f"redis.py getUpdateTime error: {e}", exc_info=True)
       return None
